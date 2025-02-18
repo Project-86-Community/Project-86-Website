@@ -1,0 +1,217 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project 86 - Fan Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="nav-bar">
+    <button class="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-controls">
+      <button class="login-button">Login</button>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#overview" class="nav-link">Overview</a></li>
+      <li><a href="#game-modes" class="nav-link">Game Modes</a></li>
+      <li><a href="#multiplayer" class="nav-link">Multiplayer</a></li>
+      <li><a href="#download" class="nav-link">Download</a></li>
+      <li><a href="#controls" class="nav-link">Controls</a></li>
+      <li><a href="#contribute" class="nav-link">Contribute</a></li>
+      <li><a href="#community" class="nav-link">Community</a></li>
+    </ul>
+  </nav>
+
+  <div class="loading-screen">
+    <h1 class="welcome-text">Welcome to the world of 86</h1>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="loading-message"></div>
+  </div>
+
+  <main class="content hidden">
+    <header>
+      <h1>Project 86 Fan Game</h1>
+      <p class="subtitle">A community-driven gaming experience</p>
+    </header>
+    
+    <section class="main-content">
+      <section id="overview" class="project-overview">
+        <h2>Project Overview</h2>
+        <p>Welcome to Project 86 - a fan game in its early stages, with the primary goal of delivering a functional beta swiftly. We invite players to actively participate and provide feedback, steering the game in the right direction.</p>
+      </section>
+      
+      <section id="game-modes" class="game-modes">
+        <h2>Game Modes</h2>
+        <div class="info-grid">
+          <div class="info-card mode-card">
+            <h3>Juggernaut Mode (FPS)</h3>
+            <p>Experience the full traumatizing experience of piloting a walking-coffin and confronting the Legion in first person. Control your Juggernaut's main cannon, wires, and secondary machine guns while managing resources with your scavenger.</p>
+            <div class="status-badge priority">Current Priority</div>
+          </div>
+          <div class="info-card mode-card">
+            <h3>Handler Mode (RTS)</h3>
+            <p>Command various squadrons as a handler, providing crucial battlefield information and direction. "Possess" squadrons to guide them towards objectives, combining strategic oversight with FPS elements.</p>
+            <div class="status-badge planned">Planned</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="multiplayer" class="multiplayer-vision">
+        <h2>Multiplayer Vision</h2>
+        <div class="info-card vision-card">
+          <p>Our ultimate goal is to create a seamless multiplayer experience where RTS and FPS modes coexist within the same game environment. This ambitious vision is subject to evolution based on our team's capabilities and community feedback.</p>
+        </div>
+      </section>
+
+      <section id="download" class="download-section">
+        <h2>Download & Play</h2>
+        <div class="download-options">
+          <div class="info-card download-card">
+            <h3>Latest Version</h3>
+            <p>Download the latest build directly:</p>
+            <ol>
+              <li>Go to the latest version page</li>
+              <li>Download the .ZIP file</li>
+              <li>Extract to any directory</li>
+              <li>Execute Project-86.exe</li>
+            </ol>
+            <a href="#" class="button download-button">
+              <svg class="download-icon" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+              </svg>
+              Download Latest Build
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="controls" class="controls-section">
+        <h2>Key Bindings</h2>
+        <div class="controls-grid">
+          <div class="info-card controls-card">
+            <h3>Basic Controls</h3>
+            <ul class="keybind-list">
+              <li><span class="key">W,A,S,D</span> Movement</li>
+              <li><span class="key">Left Click</span> Main Weapon</li>
+              <li><span class="key">Right Click</span> Secondary Weapon</li>
+              <li><span class="key">Mouse Wheel</span> Zoom (up to 8.0X)</li>
+              <li><span class="key">ESC</span> Pause/Settings</li>
+            </ul>
+          </div>
+          <div class="info-card controls-card">
+            <h3>Advanced Controls</h3>
+            <ul class="keybind-list">
+              <li><span class="key">F</span> Follow Scavenger</li>
+              <li><span class="key">H</span> Hold Scavenger</li>
+              <li><span class="key">G</span> Go To Mode</li>
+              <li><span class="key">Alt</span> HUD Edit Mode</li>
+              <li><span class="key">Shift</span> Increase Speed</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="contribute" class="contribute-section">
+        <h2>How to Contribute</h2>
+        <div class="info-card contribute-card">
+          <p>Project 86 is an open-source fan game. Anyone can freely contribute to this project, and this guide will help you get set up.</p>
+          
+          <h3>Step 1: Join Our Community</h3>
+          <p>Start by joining our Discord server. This facilitates communication and gives you access to current tasks across various areas:</p>
+          <ul class="contribution-areas">
+            <li>Coding</li>
+            <li>3D Modeling</li>
+            <li>Music</li>
+            <li>Level Design</li>
+            <li>Art</li>
+            <li>Story/Lore</li>
+          </ul>
+
+          <h3>Step 2: Setup Unity</h3>
+          <p>We are currently using Unity 6000.0.32f1. Ensure you have this specific version installed.</p>
+          <div class="notice-box">
+            <p> Important: We recently upgraded from 2022.3.21f1. Make sure your Unity Version is up to date!</p>
+          </div>
+
+          <h3>Step 3: Project Setup</h3>
+          <p>To get started with the project files:</p>
+          <ol class="setup-steps">
+            <li>
+              <h4>Required Software:</h4>
+              <ul>
+                <li><strong>Github Desktop:</strong> Simplifies Git usage for beginners</li>
+                <li><strong>Git:</strong> Essential for cloning and modifying the project</li>
+                <li><strong>Git LFS:</strong> Handles large files like textures and models</li>
+              </ul>
+            </li>
+            <li>
+              <h4>Fork the Project:</h4>
+              <p>Create your own copy by clicking the fork button on the GitHub page. This gives you full rights to manipulate the code and later submit changes to the main project.</p>
+            </li>
+            <li>
+              <h4>Clone the Repository:</h4>
+              <p>Clone using: <code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6b1bfa296b1bfa2bea3b4f8b5b9bb">[email&#160;protected]</a>:Taliayaya/Project-86.git</code> (or your fork's URL)</p>
+            </li>
+            <li>
+              <h4>Additional Assets:</h4>
+              <p>Download the Additional Assets folder from:</p>
+              <a href="https://drive.google.com/file/d/1yTOwTFJjrSXIZ2UjOxB6FsIsNqfp8Ad-/view?usp=sharing" class="button download-button" target="_blank">
+                <svg class="download-icon" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                </svg>
+                Download Additional Assets
+              </a>
+              <p class="note">Note: Extract to the root of the Assets folder. This folder was previously tracked using Git LFS but was removed due to bandwidth constraints.</p>
+            </li>
+          </ol>
+
+          <div class="space-requirements">
+            <h4>Space Requirements:</h4>
+            <p>Ensure you have at least 20GB of free space for the project files and Unity-generated content.</p>
+          </div>
+
+          <div class="next-steps">
+            <h4>Next Steps:</h4>
+            <p>After setup, you can start contributing by making changes, committing them, and pushing to your fork. If you're new to this process, don't hesitate to reach out on our Discord server for guidance.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="community" class="community-section">
+        <h2>Join Our Community</h2>
+        <div class="community-links">
+          <a href="#" class="button discord-button">
+            <svg class="discord-icon" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+            </svg>
+            Join Discord Server
+          </a>
+          <a href="#" class="button github-button">
+            <svg class="github-icon" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            View on GitHub
+          </a>
+          <a href="#" class="button patreon-button">
+            <svg class="patreon-icon" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M14.82 2.41c3.96 0 7.18 3.24 7.18 7.21c0 3.96-3.22 7.18-7.18 7.18c-3.97 0-7.21-3.22-7.21-7.18c0-3.97 3.24-7.21 7.21-7.21M2 21.6h3.5V2.41H2V21.6z"/>
+            </svg>
+            Support on Patreon
+          </a>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="main.js"></script>
+</body>
+</html>
