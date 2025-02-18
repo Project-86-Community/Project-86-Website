@@ -528,12 +528,75 @@ header h1 {
   margin: 0.5rem 0;
 }
 
+.download-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.option-card {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.option-card h3 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.option-card ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.option-card li {
+  color: #ddd;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+.troubleshooting {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  margin-top: 1rem;
+}
+
+.troubleshooting h3 {
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.troubleshooting ul {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.troubleshooting li {
+  color: #ddd;
+  margin: 0.5rem 0;
+}
+
 .notice-box {
   background: rgba(255, 71, 87, 0.1);
   border-left: 4px solid #ff4757;
   padding: 1rem;
   margin: 1rem 0;
   border-radius: 0 4px 4px 0;
+}
+
+.notice-box h3 {
+  color: #ff4757;
+  margin-bottom: 0.5rem;
+}
+
+.notice-box p {
+  color: #ddd;
+  margin: 0;
 }
 
 code {
