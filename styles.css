@@ -638,6 +638,16 @@ code {
   display: inline-flex;
 }
 
+.launcher-button {
+  background: #ff9f43;
+  color: white;
+  margin-top: 1rem;
+}
+
+.launcher-button:hover {
+  background: #e67e22;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
