@@ -1,56 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
   const loadingScreen = document.querySelector('.loading-screen');
   const progressFill = document.querySelector('.progress-fill');
+  const progressPercentage = document.querySelector('.progress-percentage');
   const mainContent = document.querySelector('.content');
   const loadingMessage = document.querySelector('.loading-message');
   
   const messages = [
-    "Connecting to the world of 86...",
-    "Initializing combat systems...",
-    "Preparing artillery units...",
-    "Establishing neural links...",
-    "Loading tactical data...",
-    "Synchronizing Processors...",
-    "Calibrating targeting systems...",
-    "Activating defense protocols...",
-    "Analyzing battlefield conditions...",
-    "System check complete..."
+    "Activating neural interface...",
+    "Synchronizing para-RAID system...",
+    "Establishing tactical data link...",
+    "Loading battlefield analysis...",
+    "Calibrating resonance frequency...",
+    "Initializing Juggernaut protocols...",
+    "Scanning for Legion activity...",
+    "Connecting to handler network...",
+    "Computing tactical projections...",
+    "All systems online. Welcome, Processor."
   ];
 
   let currentMessageIndex = 0;
+  let progress = 0;
+  const totalSteps = messages.length;
+  const animationDuration = 5000; // 5 seconds total for loading
+  const stepTime = animationDuration / totalSteps;
 
-  const showMessage = () => {
-    if (currentMessageIndex < messages.length) {
-      loadingMessage.textContent = messages[currentMessageIndex];
+  const updateProgress = () => {
+    progress += 100 / totalSteps;
+    progressFill.style.width = `${progress}%`;
+    progressPercentage.textContent = `${Math.round(progress)}%`;
+  };
+
+  const showMessage = (index) => {
+    if (index < messages.length) {
+      loadingMessage.textContent = messages[index];
       loadingMessage.classList.add('visible');
       
-      setTimeout(() => {
-        loadingMessage.classList.remove('visible');
-        currentMessageIndex++;
-        
-        // Schedule next message after fade-out
+      updateProgress();
+      
+      if (index < messages.length - 1) {
         setTimeout(() => {
-          if (currentMessageIndex < messages.length) {
-            showMessage();
-          }
-        }, 100);
-      }, 300);
+          loadingMessage.classList.remove('visible');
+          setTimeout(() => {
+            showMessage(index + 1);
+          }, 100);
+        }, stepTime - 200);
+      } else {
+        // Final message - keep it visible and proceed to main content
+        setTimeout(() => {
+          completeLoading();
+        }, stepTime);
+      }
     }
   };
 
-  // Generate random loading time between 3 and 6 seconds
-  const randomLoadingTime = Math.random() * (6000 - 3000) + 3000;
-
-  // Start progress bar animation and messages
-  setTimeout(() => {
-    progressFill.style.width = '100%';
-    // Adjust transition duration in CSS to match random time
-    progressFill.style.transitionDuration = `${randomLoadingTime/1000}s`;
-    showMessage();
-  }, 100);
-
-  // After random loading time, fade out loading screen and show content
-  setTimeout(() => {
+  const completeLoading = () => {
     loadingScreen.style.opacity = '0';
     loadingScreen.addEventListener('transitionend', () => {
       loadingScreen.style.display = 'none';
@@ -83,7 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
     cards.forEach(card => {
       observer.observe(card);
     });
-  }, randomLoadingTime);
+  };
+
+  // Start the loading sequence
+  setTimeout(() => {
+    showMessage(0);
+  }, 500);
 
   // Add hamburger menu functionality
   const hamburger = document.querySelector('.hamburger');
