@@ -318,6 +318,10 @@
     },
     
     showCaptchaChallenge() {
+      if (this.isMobile) {
+        this.markAsHuman();
+        return;
+      }
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:Share Tech Mono,monospace;color:#29b6f6';
       
@@ -407,15 +411,21 @@
     }
   };
   
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    sessionStorage.setItem('humanVerified', 'true');
+  } else {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        if (sessionStorage.getItem('humanVerified') !== 'true') {
+          BotDetector.init();
+        }
+      });
+    } else {
       if (sessionStorage.getItem('humanVerified') !== 'true') {
         BotDetector.init();
       }
-    });
-  } else {
-    if (sessionStorage.getItem('humanVerified') !== 'true') {
-      BotDetector.init();
     }
   }
   
