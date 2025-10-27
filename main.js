@@ -2,7 +2,7 @@
 (function() {
   'use strict';
   
-  const LOW_END_DEVICE_REGEX = /Android [1-4]|iPhone OS [1-9]|Windows Phone|BlackBerry/i;
+  const LOW_END_DEVICE_REGEX = /Android [1-4]\.[0-4]|iPhone OS [1-8]_|Windows Phone [1-7]|BlackBerry [1-7]/i;
   
   const PerformanceManager = {
     isLowEndDevice: false,
@@ -132,6 +132,9 @@
 (function() {
   'use strict';
   
+  // CONFIGURATION: Set to true to enable bot detection and access denied screen
+  const ENABLE_BOT_DETECTION = false;
+  
   const BotDetector = {
     score: 0,
     interactions: 0,
@@ -228,6 +231,8 @@
     },
     
     createHiddenElements() {
+      if (this.isMobile) return;
+      
       const honeypot = document.createElement('input');
       honeypot.type = 'text';
       honeypot.name = 'website';
@@ -411,6 +416,12 @@
     }
   };
   
+  if (!ENABLE_BOT_DETECTION) {
+    sessionStorage.setItem('humanVerified', 'true');
+    window.BotDetector = BotDetector;
+    return;
+  }
+  
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   if (isMobile) {
@@ -542,6 +553,13 @@
 
 // ===== MAIN APPLICATION =====
 document.addEventListener('DOMContentLoaded', () => {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    document.body.style.background = '#0a0e14';
+    document.body.style.color = '#e0e0e0';
+  }
+  
   const preventScroll = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -559,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (!window.PerformanceManager?.rateLimit()) return;
   
-  if (window.PerformanceManager?.isLowEndDevice) {
+  if (window.PerformanceManager?.isLowEndDevice && !isMobile) {
     window.removeEventListener('wheel', preventScroll);
     window.removeEventListener('touchmove', preventScroll);
     window.removeEventListener('scroll', preventScroll);
@@ -767,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let ticking = false;
-  const throttledScroll = window.PerformanceManager?.throttle(() => {
+  const scrollHandler = () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
         updateActiveNavLink();
@@ -775,15 +793,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       ticking = true;
     }
-  }, 16) || (() => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        updateActiveNavLink();
-        ticking = false;
-      });
-      ticking = true;
-    }
-  });
+  };
+  const throttledScroll = window.PerformanceManager?.throttle(scrollHandler, 16) || scrollHandler;
   
   window.addEventListener('scroll', throttledScroll, { passive: true });
 });
