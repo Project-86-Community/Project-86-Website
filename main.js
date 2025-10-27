@@ -367,6 +367,10 @@
     },
     
     blockAccess() {
+      if (this.isMobile) {
+        this.markAsHuman();
+        return;
+      }
       document.body.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0a0e14;color:#ff4757;font-family:Share Tech Mono,monospace;text-align:center;padding:2rem';
       document.body.textContent = '';
       const h1 = document.createElement('h1');
