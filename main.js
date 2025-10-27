@@ -2,6 +2,8 @@
 (function() {
   'use strict';
   
+  const LOW_END_DEVICE_REGEX = /Android [1-4]|iPhone OS [1-9]|Windows Phone|BlackBerry/i;
+  
   const PerformanceManager = {
     isLowEndDevice: false,
     requestCount: 0,
@@ -16,7 +18,7 @@
       this.isLowEndDevice = (
         memory < 2 ||
         cores < 2 ||
-        /Android [1-4]|iPhone OS [1-9]|Windows Phone|BlackBerry/i.test(ua) ||
+        LOW_END_DEVICE_REGEX.test(ua) ||
         (connection && connection.effectiveType && connection.effectiveType.includes('2g'))
       );
       
@@ -51,7 +53,13 @@
         '.low-end-device .corner-brackets { display: none !important; }'
       ];
       document.head.appendChild(style);
-      rules.forEach(rule => style.sheet.insertRule(rule, style.sheet.cssRules.length));
+      rules.forEach(rule => {
+        try {
+          style.sheet.insertRule(rule, style.sheet.cssRules.length);
+        } catch (e) {
+          console.warn('Failed to insert CSS rule:', e);
+        }
+      });
       
       setTimeout(() => {
         const loadingScreen = document.querySelector('.loading-screen');
@@ -66,13 +74,6 @@
     
     cleanup() {
       if (window.gc) window.gc();
-      
-      const elements = document.querySelectorAll('*');
-      elements.forEach(el => {
-        if (el._listeners) {
-          el._listeners = null;
-        }
-      });
     },
     
     handleError(error) {
@@ -139,6 +140,7 @@
     keystrokes: 0,
     scrolls: 0,
     isBot: false,
+    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
     
     init() {
       this.addEventListeners();
@@ -149,31 +151,77 @@
     addEventListeners() {
       try {
         document.addEventListener('mousemove', this.throttle(() => {
-          this.mouseMovements++;
-          this.score += 1;
+          try {
+            this.mouseMovements++;
+            this.score += 1;
+          } catch (e) {
+            console.warn('Mousemove handler error:', e);
+          }
+        }, 100));
+        
+        document.addEventListener('touchstart', this.throttle(() => {
+          try {
+            this.mouseMovements++;
+            this.score += 1;
+          } catch (e) {
+            console.warn('Touchstart handler error:', e);
+          }
+        }, 100));
+        
+        document.addEventListener('touchmove', this.throttle(() => {
+          try {
+            this.mouseMovements++;
+            this.score += 1;
+          } catch (e) {
+            console.warn('Touchmove handler error:', e);
+          }
         }, 100));
         
         document.addEventListener('keydown', () => {
-          this.keystrokes++;
-          this.score += 2;
-        });
-        
-        document.addEventListener('scroll', this.throttle(() => {
-          this.scrolls++;
-          this.score += 1;
-        }, 200));
-        
-        document.addEventListener('click', (e) => {
-          this.interactions++;
-          this.score += 3;
-          
-          if (this.interactions > 10 && (Date.now() - this.startTime) < 2000) {
-            this.score -= 10;
+          try {
+            this.keystrokes++;
+            this.score += 2;
+          } catch (e) {
+            console.warn('Keydown handler error:', e);
           }
         });
         
-        window.addEventListener('focus', () => this.score += 2);
-        window.addEventListener('blur', () => this.score += 1);
+        document.addEventListener('scroll', this.throttle(() => {
+          try {
+            this.scrolls++;
+            this.score += 1;
+          } catch (e) {
+            console.warn('Scroll handler error:', e);
+          }
+        }, 200));
+        
+        document.addEventListener('click', (e) => {
+          try {
+            this.interactions++;
+            this.score += 3;
+            
+            if (this.interactions > 10 && (Date.now() - this.startTime) < 2000) {
+              this.score -= 10;
+            }
+          } catch (err) {
+            console.warn('Click handler error:', err);
+          }
+        });
+        
+        window.addEventListener('focus', () => {
+          try {
+            this.score += 2;
+          } catch (e) {
+            console.warn('Focus handler error:', e);
+          }
+        });
+        window.addEventListener('blur', () => {
+          try {
+            this.score += 1;
+          } catch (e) {
+            console.warn('Blur handler error:', e);
+          }
+        });
       } catch (error) {
         console.warn('Error adding event listeners:', error);
       }
@@ -205,7 +253,7 @@
     
     startBehaviorAnalysis() {
       setTimeout(() => {
-        if (this.score < 5 && this.mouseMovements === 0) {
+        if (!this.isMobile && this.score < 5 && this.mouseMovements === 0) {
           this.isBot = true;
         }
       }, 3000);
@@ -223,15 +271,15 @@
       const timeSpent = Date.now() - this.startTime;
       const behaviorScore = this.calculateBehaviorScore(timeSpent);
       
-      if (behaviorScore < 10 && timeSpent > 5000) {
+      if (!this.isMobile && behaviorScore < 10 && timeSpent > 5000) {
         this.isBot = true;
       }
       
-      if (this.mouseMovements > 0 && this.mouseMovements % 10 === 0 && timeSpent < 3000) {
+      if (!this.isMobile && this.mouseMovements > 0 && this.mouseMovements % 10 === 0 && timeSpent < 3000) {
         this.isBot = true;
       }
       
-      if (this.interactions > 5 && this.mouseMovements === 0) {
+      if (!this.isMobile && this.interactions > 5 && this.mouseMovements === 0) {
         this.isBot = true;
       }
       
@@ -246,12 +294,12 @@
       if (timeSpent > 10000) score += 5;
       if (timeSpent > 30000) score += 10;
       
-      if (this.mouseMovements > 0 && this.keystrokes > 0 && this.scrolls > 0) {
-        score += 15;
-      }
-      
-      if (this.mouseMovements > 10 && this.interactions > 2) {
-        score += 10;
+      if (this.isMobile) {
+        if (this.mouseMovements > 0 || this.scrolls > 0) score += 15;
+        if (this.interactions > 0) score += 10;
+      } else {
+        if (this.mouseMovements > 0 && this.keystrokes > 0 && this.scrolls > 0) score += 15;
+        if (this.mouseMovements > 10 && this.interactions > 2) score += 10;
       }
       
       return score;
@@ -260,8 +308,9 @@
     finalVerification() {
       const timeSpent = Date.now() - this.startTime;
       const finalScore = this.calculateBehaviorScore(timeSpent);
+      const threshold = this.isMobile ? 10 : 20;
       
-      if (finalScore < 20 || this.isBot) {
+      if (finalScore < threshold || this.isBot) {
         this.showCaptchaChallenge();
       } else {
         this.markAsHuman();
@@ -279,37 +328,65 @@
       const answer = Math.floor(Math.random() * 10) + 1;
       const correctAnswer = question + answer;
       
-      challenge.innerHTML = `
-        <h3>Security Verification</h3>
-        <p>Please solve: ${question} + ${answer} = ?</p>
-        <input type="number" id="captcha-answer" style="background:#333;border:1px solid #29b6f6;color:#fff;padding:0.5rem;margin:1rem;border-radius:4px">
-        <br>
-        <button id="captcha-submit" style="background:#29b6f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:4px;cursor:pointer">Verify</button>
-      `;
+      const h3 = document.createElement('h3');
+      h3.textContent = 'Security Verification';
+      const p = document.createElement('p');
+      p.textContent = `Please solve: ${question} + ${answer} = ?`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.id = 'captcha-answer';
+      input.style.cssText = 'background:#333;border:1px solid #29b6f6;color:#fff;padding:0.5rem;margin:1rem;border-radius:4px';
+      const br = document.createElement('br');
+      const button = document.createElement('button');
+      button.id = 'captcha-submit';
+      button.textContent = 'Verify';
+      button.style.cssText = 'background:#29b6f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:4px;cursor:pointer';
+      challenge.appendChild(h3);
+      challenge.appendChild(p);
+      challenge.appendChild(input);
+      challenge.appendChild(br);
+      challenge.appendChild(button);
       
       overlay.appendChild(challenge);
       document.body.appendChild(overlay);
       
       document.getElementById('captcha-submit').addEventListener('click', () => {
-        const userAnswer = parseInt(document.getElementById('captcha-answer').value);
-        if (userAnswer === correctAnswer) {
-          this.markAsHuman();
-          document.body.removeChild(overlay);
-        } else {
+        try {
+          const userAnswer = parseInt(document.getElementById('captcha-answer').value);
+          if (userAnswer === correctAnswer) {
+            this.markAsHuman();
+            document.body.removeChild(overlay);
+          } else {
+            this.blockAccess();
+          }
+        } catch (error) {
+          console.warn('Captcha verification error:', error);
           this.blockAccess();
         }
       });
     },
     
     blockAccess() {
-      document.body.innerHTML = '';
       document.body.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0a0e14;color:#ff4757;font-family:Share Tech Mono,monospace;text-align:center;padding:2rem';
-      document.body.innerHTML = '<h1>[ACCESS DENIED]</h1><p>Unauthorized entity detected.</p><p>Classification: Legion.</p>';
+      document.body.textContent = '';
+      const h1 = document.createElement('h1');
+      h1.textContent = '[ACCESS DENIED]';
+      const p1 = document.createElement('p');
+      p1.textContent = 'Unauthorized entity detected.';
+      const p2 = document.createElement('p');
+      p2.textContent = 'Classification: Legion.';
+      document.body.appendChild(h1);
+      document.body.appendChild(p1);
+      document.body.appendChild(p2);
     },
     
     markAsHuman() {
-      sessionStorage.setItem('humanVerified', 'true');
-      console.log('Human verification successful');
+      try {
+        sessionStorage.setItem('humanVerified', 'true');
+        console.log('Human verification successful');
+      } catch (error) {
+        console.warn('Failed to set session storage:', error);
+      }
     },
     
     throttle(func, limit) {
@@ -378,8 +455,8 @@
       const users = JSON.parse(localStorage.getItem('p86-users') || '{}');
       const now = Date.now();
       
-      Object.keys(users).forEach(id => {
-        if (now - users[id] > 30000) delete users[id];
+      Object.entries(users).forEach(([id, timestamp]) => {
+        if (now - timestamp > 30000) delete users[id];
       });
       
       users[this.myId] = now;
@@ -402,8 +479,12 @@
     },
     
     announcePresence() {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({ type: 'join', id: this.myId }));
+      try {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: 'join', id: this.myId }));
+        }
+      } catch (error) {
+        console.warn('Error announcing presence:', error);
       }
     },
     
@@ -426,9 +507,10 @@
         counterValue.textContent = totalUsers;
         
         counterValue.style.animation = 'none';
+        const ANIMATION_RESET_DELAY = 10;
         setTimeout(() => {
           counterValue.style.animation = 'pulse 0.5s ease-in-out';
-        }, 10);
+        }, ANIMATION_RESET_DELAY);
       }
     }
   };
@@ -587,6 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const hamburger = document.querySelector('.hamburger');
   const navList = document.querySelector('.nav-list');
   const navLinks = document.querySelectorAll('.nav-link');
+  const navBar = document.querySelector('.nav-bar');
   
   if (!hamburger || !navList) return;
 
@@ -607,8 +690,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const targetId = link.getAttribute('href').slice(1);
       const targetSection = document.getElementById(targetId);
-      if (targetSection) {
-        const navHeight = document.querySelector('.nav-bar').offsetHeight;
+      if (targetSection && navBar) {
+        const navHeight = navBar.offsetHeight;
         const targetPosition = targetSection.offsetTop - navHeight - 20;
         window.scrollTo({
           top: targetPosition,
