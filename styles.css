@@ -1629,3 +1629,14 @@ code {
     width: 40px;
   }
 }
+
+
+/* Mobile: Prevent access denied screen */
+@media (max-width: 768px) {
+  body[style*="display:flex"][style*="height:100vh"][style*="#0a0e14"] {
+    display: block !important;
+    height: auto !important;
+    background: #0a0e14 !important;
+    color: #e0e0e0 !important;
+  }
+}
