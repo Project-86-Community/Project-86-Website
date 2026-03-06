@@ -1,32 +1,34 @@
+// ===== SHARED CONSTANTS =====
+const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 // ===== PERFORMANCE MANAGER =====
 (function() {
   'use strict';
-  
+
   const LOW_END_DEVICE_REGEX = /Android [1-4]\.[0-4]|iPhone OS [1-8]_|Windows Phone [1-7]|BlackBerry [1-7]/i;
-  
+
   const PerformanceManager = {
     isLowEndDevice: false,
     requestCount: 0,
     lastRequestTime: 0,
-    
+
     detectDevice() {
-      const ua = navigator.userAgent;
       const memory = navigator.deviceMemory || 4;
       const cores = navigator.hardwareConcurrency || 2;
       const connection = navigator.connection;
-      
+
       this.isLowEndDevice = (
         memory < 2 ||
         cores < 2 ||
-        LOW_END_DEVICE_REGEX.test(ua) ||
-        (connection && connection.effectiveType && connection.effectiveType.includes('2g'))
+        LOW_END_DEVICE_REGEX.test(navigator.userAgent) ||
+        (connection?.effectiveType?.includes('2g'))
       );
-      
+
       if (this.isLowEndDevice) {
         this.enableLowEndMode();
       }
     },
-    
+
     rateLimit() {
       const now = Date.now();
       if (now - this.lastRequestTime < 100) {
@@ -41,26 +43,28 @@
       this.lastRequestTime = now;
       return true;
     },
-    
+
     enableLowEndMode() {
       document.documentElement.classList.add('low-end-device');
-      
+
       const style = document.createElement('style');
+      document.head.appendChild(style);
+
       const rules = [
         '.low-end-device * { animation: none !important; transition: none !important; transform: none !important; filter: none !important; backdrop-filter: none !important; box-shadow: none !important; text-shadow: none !important; }',
         '.low-end-device .loading-screen { display: none !important; }',
         '.low-end-device .interface-overlay { display: none !important; }',
         '.low-end-device .corner-brackets { display: none !important; }'
       ];
-      document.head.appendChild(style);
-      rules.forEach(rule => {
+
+      for (const rule of rules) {
         try {
           style.sheet.insertRule(rule, style.sheet.cssRules.length);
         } catch (e) {
           console.warn('Failed to insert CSS rule:', e);
         }
-      });
-      
+      }
+
       setTimeout(() => {
         const loadingScreen = document.querySelector('.loading-screen');
         const mainContent = document.querySelector('.content');
@@ -71,31 +75,25 @@
         }
       }, 100);
     },
-    
-    cleanup() {
-      if (window.gc) window.gc();
-    },
-    
+
     handleError(error) {
       console.error('Performance error:', error?.name || 'Unknown', error?.message || 'No message');
-      if (error.name === 'QuotaExceededError') {
+      if (error?.name === 'QuotaExceededError') {
         localStorage.clear();
       }
     },
-    
+
     throttle(func, limit) {
       let inThrottle;
-      return function() {
-        const args = arguments;
-        const context = this;
+      return (...args) => {
         if (!inThrottle) {
-          func.apply(context, args);
+          func.apply(this, args);
           inThrottle = true;
           setTimeout(() => inThrottle = false, limit);
         }
-      }
+      };
     },
-    
+
     debounce(func, wait) {
       let timeout;
       return (...args) => {
@@ -104,37 +102,26 @@
       };
     }
   };
-  
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      PerformanceManager.detectDevice();
-    });
+    document.addEventListener('DOMContentLoaded', () => PerformanceManager.detectDevice());
   } else {
     PerformanceManager.detectDevice();
   }
-  
-  window.addEventListener('error', (e) => {
-    PerformanceManager.handleError(e.error);
-  });
-  
-  window.addEventListener('unhandledrejection', (e) => {
-    PerformanceManager.handleError(e.reason);
-  });
-  
-  window.addEventListener('beforeunload', () => {
-    PerformanceManager.cleanup();
-  });
-  
+
+  window.addEventListener('error', (e) => PerformanceManager.handleError(e.error));
+  window.addEventListener('unhandledrejection', (e) => PerformanceManager.handleError(e.reason));
+
   window.PerformanceManager = PerformanceManager;
 })();
 
 // ===== BOT DETECTOR =====
 (function() {
   'use strict';
-  
+
   // CONFIGURATION: Set to true to enable bot detection and access denied screen
   const ENABLE_BOT_DETECTION = false;
-  
+
   const BotDetector = {
     score: 0,
     interactions: 0,
@@ -143,96 +130,56 @@
     keystrokes: 0,
     scrolls: 0,
     isBot: false,
-    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
-    
+
     init() {
       this.addEventListeners();
       this.createHiddenElements();
       this.startBehaviorAnalysis();
     },
-    
+
     addEventListeners() {
-      try {
-        document.addEventListener('mousemove', this.throttle(() => {
-          try {
-            this.mouseMovements++;
-            this.score += 1;
-          } catch (e) {
-            console.warn('Mousemove handler error:', e);
-          }
-        }, 100));
-        
-        document.addEventListener('touchstart', this.throttle(() => {
-          try {
-            this.mouseMovements++;
-            this.score += 1;
-          } catch (e) {
-            console.warn('Touchstart handler error:', e);
-          }
-        }, 100));
-        
-        document.addEventListener('touchmove', this.throttle(() => {
-          try {
-            this.mouseMovements++;
-            this.score += 1;
-          } catch (e) {
-            console.warn('Touchmove handler error:', e);
-          }
-        }, 100));
-        
-        document.addEventListener('keydown', () => {
-          try {
-            this.keystrokes++;
-            this.score += 2;
-          } catch (e) {
-            console.warn('Keydown handler error:', e);
-          }
-        });
-        
-        document.addEventListener('scroll', this.throttle(() => {
-          try {
-            this.scrolls++;
-            this.score += 1;
-          } catch (e) {
-            console.warn('Scroll handler error:', e);
-          }
-        }, 200));
-        
-        document.addEventListener('click', (e) => {
-          try {
-            this.interactions++;
-            this.score += 3;
-            
-            if (this.interactions > 10 && (Date.now() - this.startTime) < 2000) {
-              this.score -= 10;
-            }
-          } catch (err) {
-            console.warn('Click handler error:', err);
-          }
-        });
-        
-        window.addEventListener('focus', () => {
-          try {
-            this.score += 2;
-          } catch (e) {
-            console.warn('Focus handler error:', e);
-          }
-        });
-        window.addEventListener('blur', () => {
-          try {
-            this.score += 1;
-          } catch (e) {
-            console.warn('Blur handler error:', e);
-          }
-        });
-      } catch (error) {
-        console.warn('Error adding event listeners:', error);
-      }
+      const throttle = window.PerformanceManager.throttle;
+
+      document.addEventListener('mousemove', throttle(() => {
+        this.mouseMovements++;
+        this.score += 1;
+      }, 100));
+
+      document.addEventListener('touchstart', throttle(() => {
+        this.mouseMovements++;
+        this.score += 1;
+      }, 100));
+
+      document.addEventListener('touchmove', throttle(() => {
+        this.mouseMovements++;
+        this.score += 1;
+      }, 100));
+
+      document.addEventListener('keydown', () => {
+        this.keystrokes++;
+        this.score += 2;
+      });
+
+      document.addEventListener('scroll', throttle(() => {
+        this.scrolls++;
+        this.score += 1;
+      }, 200));
+
+      document.addEventListener('click', () => {
+        this.interactions++;
+        this.score += 3;
+        if (this.interactions > 10 && (Date.now() - this.startTime) < 2000) {
+          this.score -= 10;
+        }
+      });
+
+      window.addEventListener('focus', () => { this.score += 2; });
+      window.addEventListener('blur', () => { this.score += 1; });
     },
-    
+
     createHiddenElements() {
-      if (this.isMobile) return;
-      
+      if (IS_MOBILE) return;
+
       const honeypot = document.createElement('input');
       honeypot.type = 'text';
       honeypot.name = 'website';
@@ -243,7 +190,7 @@
         this.blockAccess();
       });
       document.body.appendChild(honeypot);
-      
+
       const trapLink = document.createElement('a');
       trapLink.href = '#';
       trapLink.style.cssText = 'position:absolute;left:-9999px;opacity:0;';
@@ -255,128 +202,109 @@
       });
       document.body.appendChild(trapLink);
     },
-    
+
     startBehaviorAnalysis() {
       setTimeout(() => {
-        if (!this.isMobile && this.score < 5 && this.mouseMovements === 0) {
+        if (!IS_MOBILE && this.score < 5 && this.mouseMovements === 0) {
           this.isBot = true;
         }
       }, 3000);
-      
-      setInterval(() => {
-        this.analyzeBehavior();
-      }, 5000);
-      
-      setTimeout(() => {
-        this.finalVerification();
-      }, 10000);
+
+      setInterval(() => this.analyzeBehavior(), 5000);
+
+      setTimeout(() => this.finalVerification(), 10000);
     },
-    
+
     analyzeBehavior() {
       const timeSpent = Date.now() - this.startTime;
       const behaviorScore = this.calculateBehaviorScore(timeSpent);
-      
-      if (!this.isMobile && behaviorScore < 10 && timeSpent > 5000) {
+
+      if (!IS_MOBILE && behaviorScore < 10 && timeSpent > 5000) {
         this.isBot = true;
       }
-      
-      if (!this.isMobile && this.mouseMovements > 0 && this.mouseMovements % 10 === 0 && timeSpent < 3000) {
+
+      if (!IS_MOBILE && this.mouseMovements > 0 && this.mouseMovements % 10 === 0 && timeSpent < 3000) {
         this.isBot = true;
       }
-      
-      if (!this.isMobile && this.interactions > 5 && this.mouseMovements === 0) {
+
+      if (!IS_MOBILE && this.interactions > 5 && this.mouseMovements === 0) {
         this.isBot = true;
       }
-      
+
       if (this.isBot) {
         this.blockAccess();
       }
     },
-    
+
     calculateBehaviorScore(timeSpent) {
       let score = this.score;
-      
+
       if (timeSpent > 10000) score += 5;
       if (timeSpent > 30000) score += 10;
-      
-      if (this.isMobile) {
+
+      if (IS_MOBILE) {
         if (this.mouseMovements > 0 || this.scrolls > 0) score += 15;
         if (this.interactions > 0) score += 10;
       } else {
         if (this.mouseMovements > 0 && this.keystrokes > 0 && this.scrolls > 0) score += 15;
         if (this.mouseMovements > 10 && this.interactions > 2) score += 10;
       }
-      
+
       return score;
     },
-    
+
     finalVerification() {
       const timeSpent = Date.now() - this.startTime;
       const finalScore = this.calculateBehaviorScore(timeSpent);
-      const threshold = this.isMobile ? 10 : 20;
-      
+      const threshold = IS_MOBILE ? 10 : 20;
+
       if (finalScore < threshold || this.isBot) {
         this.showCaptchaChallenge();
       } else {
         this.markAsHuman();
       }
     },
-    
+
     showCaptchaChallenge() {
-      if (this.isMobile) {
+      if (IS_MOBILE) {
         this.markAsHuman();
         return;
       }
+
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:Share Tech Mono,monospace;color:#29b6f6';
-      
+
       const challenge = document.createElement('div');
       challenge.style.cssText = 'background:#1a1a1a;padding:2rem;border-radius:8px;border:1px solid #29b6f6;text-align:center;max-width:400px';
-      
-      const question = Math.floor(Math.random() * 10) + 1;
-      const answer = Math.floor(Math.random() * 10) + 1;
-      const correctAnswer = question + answer;
-      
-      const h3 = document.createElement('h3');
-      h3.textContent = 'Security Verification';
-      const p = document.createElement('p');
-      p.textContent = `Please solve: ${question} + ${answer} = ?`;
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.id = 'captcha-answer';
-      input.style.cssText = 'background:#333;border:1px solid #29b6f6;color:#fff;padding:0.5rem;margin:1rem;border-radius:4px';
-      const br = document.createElement('br');
-      const button = document.createElement('button');
-      button.id = 'captcha-submit';
-      button.textContent = 'Verify';
-      button.style.cssText = 'background:#29b6f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:4px;cursor:pointer';
-      challenge.appendChild(h3);
-      challenge.appendChild(p);
-      challenge.appendChild(input);
-      challenge.appendChild(br);
-      challenge.appendChild(button);
-      
+
+      const a = Math.floor(Math.random() * 10) + 1;
+      const b = Math.floor(Math.random() * 10) + 1;
+      const correctAnswer = a + b;
+
+      challenge.innerHTML = `
+        <h3>Security Verification</h3>
+        <p>Please solve: ${a} + ${b} = ?</p>
+        <input type="number" id="captcha-answer" style="background:#333;border:1px solid #29b6f6;color:#fff;padding:0.5rem;margin:1rem;border-radius:4px">
+        <br>
+        <button id="captcha-submit" style="background:#29b6f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:4px;cursor:pointer">Verify</button>
+      `;
+
       overlay.appendChild(challenge);
       document.body.appendChild(overlay);
-      
+
       document.getElementById('captcha-submit').addEventListener('click', () => {
-        try {
-          const userAnswer = parseInt(document.getElementById('captcha-answer').value);
-          if (userAnswer === correctAnswer) {
-            this.markAsHuman();
-            document.body.removeChild(overlay);
-          } else {
-            this.blockAccess();
-          }
-        } catch (error) {
-          console.warn('Captcha verification error:', error);
+        const userAnswer = parseInt(document.getElementById('captcha-answer').value, 10);
+        if (userAnswer === correctAnswer) {
+          this.markAsHuman();
+          overlay.remove();
+        } else {
           this.blockAccess();
         }
       });
     },
-    
+
     blockAccess() {
-      if (this.isMobile) {
+      if (IS_MOBILE) {
         this.markAsHuman();
         return;
       }
@@ -388,75 +316,50 @@
       p1.textContent = 'Unauthorized entity detected.';
       const p2 = document.createElement('p');
       p2.textContent = 'Classification: Legion.';
-      document.body.appendChild(h1);
-      document.body.appendChild(p1);
-      document.body.appendChild(p2);
+      document.body.append(h1, p1, p2);
     },
-    
+
     markAsHuman() {
       try {
         sessionStorage.setItem('humanVerified', 'true');
-        console.log('Human verification successful');
-      } catch (error) {
-        console.warn('Failed to set session storage:', error);
-      }
-    },
-    
-    throttle(func, limit) {
-      let inThrottle;
-      return function() {
-        const args = arguments;
-        const context = this;
-        if (!inThrottle) {
-          func.apply(context, args);
-          inThrottle = true;
-          setTimeout(() => inThrottle = false, limit);
-        }
+      } catch (e) {
+        // sessionStorage unavailable
       }
     }
   };
-  
+
   if (!ENABLE_BOT_DETECTION) {
     sessionStorage.setItem('humanVerified', 'true');
     window.BotDetector = BotDetector;
     return;
   }
-  
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  if (isMobile) {
+
+  if (IS_MOBILE) {
     sessionStorage.setItem('humanVerified', 'true');
-  } else {
+  } else if (sessionStorage.getItem('humanVerified') !== 'true') {
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        if (sessionStorage.getItem('humanVerified') !== 'true') {
-          BotDetector.init();
-        }
-      });
+      document.addEventListener('DOMContentLoaded', () => BotDetector.init());
     } else {
-      if (sessionStorage.getItem('humanVerified') !== 'true') {
-        BotDetector.init();
-      }
+      BotDetector.init();
     }
   }
-  
+
   window.BotDetector = BotDetector;
 })();
 
-// ===== P2P COUNTER =====
+// ===== USER COUNTER (localStorage only) =====
 (function() {
   'use strict';
-  
-  const P2PCounter = {
-    peers: new Map(),
+
+  const UserCounter = {
     myId: Math.random().toString(36).substr(2, 9),
-    ws: null,
-    
+    intervalId: null,
+
     init() {
       this.createCounterDisplay();
-      this.connectToSignaling();
+      this.startTracking();
     },
-    
+
     createCounterDisplay() {
       const counter = document.createElement('div');
       counter.id = 'user-counter';
@@ -464,124 +367,66 @@
       counter.innerHTML = '<span class="counter-label">USERS ONLINE:</span> <span class="counter-value">1</span>';
       document.body.appendChild(counter);
     },
-    
-    connectToSignaling() {
-      try {
-        this.ws = new WebSocket('wss://echo.websocket.org');
-        this.ws.onopen = () => this.announcePresence();
-        this.ws.onmessage = (event) => this.handleSignal(event.data);
-        this.ws.onerror = () => this.fallbackToLocalStorage();
-      } catch (e) {
-        this.fallbackToLocalStorage();
-      }
+
+    startTracking() {
+      this.updatePresence();
+      this.intervalId = setInterval(() => this.updatePresence(), 5000);
     },
-    
-    fallbackToLocalStorage() {
-      const users = JSON.parse(localStorage.getItem('p86-users') || '{}');
-      const now = Date.now();
-      
-      Object.entries(users).forEach(([id, timestamp]) => {
-        if (now - timestamp > 30000) delete users[id];
-      });
-      
-      users[this.myId] = now;
-      localStorage.setItem('p86-users', JSON.stringify(users));
-      
-      this.updateCounter(Object.keys(users).length);
-      
-      setInterval(() => {
-        const currentUsers = JSON.parse(localStorage.getItem('p86-users') || '{}');
-        const currentTime = Date.now();
-        
-        Object.keys(currentUsers).forEach(id => {
-          if (currentTime - currentUsers[id] > 30000) delete currentUsers[id];
-        });
-        
-        currentUsers[this.myId] = currentTime;
-        localStorage.setItem('p86-users', JSON.stringify(currentUsers));
-        this.updateCounter(Object.keys(currentUsers).length);
-      }, 5000);
-    },
-    
-    announcePresence() {
+
+    updatePresence() {
       try {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: 'join', id: this.myId }));
+        const users = JSON.parse(localStorage.getItem('p86-users') || '{}');
+        const now = Date.now();
+
+        // Clean up stale entries
+        for (const id of Object.keys(users)) {
+          if (now - users[id] > 30000) delete users[id];
         }
-      } catch (error) {
-        console.warn('Error announcing presence:', error);
-      }
-    },
-    
-    handleSignal(data) {
-      try {
-        const message = JSON.parse(data);
-        if (message.type === 'join' && message.id !== this.myId) {
-          this.peers.set(message.id, Date.now());
-          this.updateCounter(this.peers.size + 1);
+
+        users[this.myId] = now;
+        localStorage.setItem('p86-users', JSON.stringify(users));
+
+        const counterValue = document.querySelector('.counter-value');
+        if (counterValue) {
+          counterValue.textContent = Object.keys(users).length;
         }
       } catch (e) {
-        // Ignore invalid messages
-      }
-    },
-    
-    updateCounter(count = null) {
-      const counterValue = document.querySelector('.counter-value');
-      if (counterValue) {
-        const totalUsers = count || (this.peers.size + 1);
-        counterValue.textContent = totalUsers;
-        
-        counterValue.style.animation = 'none';
-        const ANIMATION_RESET_DELAY = 10;
-        setTimeout(() => {
-          counterValue.style.animation = 'pulse 0.5s ease-in-out';
-        }, ANIMATION_RESET_DELAY);
+        // localStorage unavailable
       }
     }
   };
-  
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      P2PCounter.init();
-    });
+    document.addEventListener('DOMContentLoaded', () => UserCounter.init());
   } else {
-    P2PCounter.init();
+    UserCounter.init();
   }
-  
-  window.P2PCounter = P2PCounter;
 })();
 
 // ===== MAIN APPLICATION =====
 document.addEventListener('DOMContentLoaded', () => {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  if (isMobile) {
+  if (IS_MOBILE) {
     document.body.style.background = '#0a0e14';
     document.body.style.color = '#e0e0e0';
   }
-  
+
   const preventScroll = (e) => {
     e.preventDefault();
     e.stopPropagation();
     return false;
   };
-  
+
   window.addEventListener('wheel', preventScroll, { passive: false });
   window.addEventListener('touchmove', preventScroll, { passive: false });
   window.addEventListener('scroll', preventScroll, { passive: false });
-  
-  document.addEventListener('copy', (e) => {
-    e.clipboardData.setData('text/plain', '[NOPE]');
-    e.preventDefault();
-  });
-  
+
   if (!window.PerformanceManager?.rateLimit()) return;
-  
-  if (window.PerformanceManager?.isLowEndDevice && !isMobile) {
+
+  if (window.PerformanceManager?.isLowEndDevice && !IS_MOBILE) {
     window.removeEventListener('wheel', preventScroll);
     window.removeEventListener('touchmove', preventScroll);
     window.removeEventListener('scroll', preventScroll);
-    
+
     window.scrollTo(0, 0);
     document.documentElement.classList.remove('loading');
     document.body.classList.remove('loading');
@@ -592,18 +437,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return;
   }
-  
+
   const loadingScreen = document.querySelector('.loading-screen');
   const progressFill = document.querySelector('.progress-fill');
   const progressPercentage = document.querySelector('.progress-percentage');
   const mainContent = document.querySelector('.content');
   const loadingMessage = document.querySelector('.loading-message');
-  
+
   if (!loadingScreen || !progressFill || !progressPercentage || !mainContent || !loadingMessage) {
     console.warn('Required loading elements not found');
     return;
   }
-  
+
   const messages = [
     "Activating neural interface...",
     "Synchronizing para-RAID system...",
@@ -629,27 +474,19 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showMessage = (index) => {
-    if (index < messages.length) {
-      loadingMessage.textContent = messages[index];
-      loadingMessage.classList.add('visible');
-      
-      updateProgress();
-      
-      if (index < messages.length - 1) {
-        setTimeout(() => {
-          loadingMessage.classList.remove('visible');
-          setTimeout(() => {
-            const nextIndex = parseInt(index, 10) + 1;
-            if (Number.isInteger(nextIndex) && nextIndex >= 0 && nextIndex < messages.length) {
-              showMessage(nextIndex);
-            }
-          }, 100);
-        }, Math.max(0, stepTime - 200));
-      } else {
-        setTimeout(() => {
-          completeLoading();
-        }, stepTime);
-      }
+    if (index >= messages.length) return;
+
+    loadingMessage.textContent = messages[index];
+    loadingMessage.classList.add('visible');
+    updateProgress();
+
+    if (index < messages.length - 1) {
+      setTimeout(() => {
+        loadingMessage.classList.remove('visible');
+        setTimeout(() => showMessage(index + 1), 100);
+      }, Math.max(0, stepTime - 200));
+    } else {
+      setTimeout(completeLoading, stepTime);
     }
   };
 
@@ -657,81 +494,73 @@ document.addEventListener('DOMContentLoaded', () => {
     window.removeEventListener('wheel', preventScroll);
     window.removeEventListener('touchmove', preventScroll);
     window.removeEventListener('scroll', preventScroll);
-    
+
     window.scrollTo(0, 0);
     document.documentElement.classList.remove('loading');
     document.body.classList.remove('loading');
-    
+
     loadingScreen.style.opacity = '0';
     loadingScreen.addEventListener('transitionend', () => {
       loadingScreen.style.display = 'none';
-    });
+    }, { once: true });
 
     mainContent.classList.remove('hidden');
     mainContent.style.opacity = '1';
 
-    const cards = document.querySelectorAll('.info-card');
-    
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.2
-    };
-
-    const observerCallback = (entries, observer) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+    // Intersection Observer for card reveal animations
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
         }
-      });
-    };
+      },
+      { rootMargin: '0px', threshold: 0.2 }
+    );
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-    
-    cards.forEach(card => {
-      observer.observe(card);
-    });
+    document.querySelectorAll('.info-card').forEach(card => observer.observe(card));
   };
 
-  setTimeout(() => {
-    showMessage(0);
-  }, 500);
+  setTimeout(() => showMessage(0), 500);
 
+  // === Navigation ===
   const hamburger = document.querySelector('.hamburger');
   const navList = document.querySelector('.nav-list');
   const navLinks = document.querySelectorAll('.nav-link');
   const navBar = document.querySelector('.nav-bar');
-  
+
   if (!hamburger || !navList) return;
 
-  hamburger.addEventListener('click', window.PerformanceManager?.throttle(() => {
+  const toggleMenu = window.PerformanceManager?.throttle(() => {
     if (!window.PerformanceManager?.rateLimit()) return;
     hamburger.classList.toggle('active');
     navList.classList.toggle('active');
   }, 300) || (() => {
     hamburger.classList.toggle('active');
     navList.classList.toggle('active');
-  }));
+  });
 
-  navLinks.forEach(link => {
+  hamburger.addEventListener('click', toggleMenu);
+
+  for (const link of navLinks) {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       hamburger.classList.remove('active');
       navList.classList.remove('active');
-      
+
       const targetId = link.getAttribute('href').slice(1);
       const targetSection = document.getElementById(targetId);
       if (targetSection && navBar) {
         const navHeight = navBar.offsetHeight;
-        const targetPosition = targetSection.offsetTop - navHeight - 20;
         window.scrollTo({
-          top: targetPosition,
+          top: targetSection.offsetTop - navHeight - 20,
           behavior: 'smooth'
         });
       }
     });
-  });
+  }
 
   document.addEventListener('click', (e) => {
     if (!hamburger.contains(e.target) && !navList.contains(e.target)) {
@@ -740,61 +569,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // === Active nav link tracking ===
   const sections = document.querySelectorAll('section[id]');
-  
+
   const updateActiveNavLink = () => {
-    try {
-      const scrollPosition = window.scrollY + 100;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const isAtBottom = scrollPosition + windowHeight >= documentHeight - 10;
-      
-      document.querySelectorAll('.nav-link.active').forEach(link => {
-        link.classList.remove('active');
-      });
-      
-      let activeSection = null;
-      
-      if (isAtBottom) {
-        activeSection = sections[sections.length - 1];
-      } else {
-        sections.forEach(section => {
-          if (!section) return;
-          const sectionTop = section.offsetTop;
-          const sectionHeight = section.offsetHeight;
-          
-          if (scrollPosition >= sectionTop - 50 && scrollPosition < sectionTop + sectionHeight) {
-            activeSection = section;
-          }
-        });
-      }
-      
-      if (activeSection) {
-        const sectionId = activeSection.getAttribute('id');
-        if (sectionId) {
-          const sanitizedId = CSS.escape(sectionId);
-          const activeLink = document.querySelector(`.nav-link[href="#${sanitizedId}"]`);
-          if (activeLink) {
-            activeLink.classList.add('active');
-          }
+    const scrollPosition = window.scrollY + 100;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const isAtBottom = scrollPosition + windowHeight >= documentHeight - 10;
+
+    for (const link of document.querySelectorAll('.nav-link.active')) {
+      link.classList.remove('active');
+    }
+
+    let activeSection = null;
+
+    if (isAtBottom) {
+      activeSection = sections[sections.length - 1];
+    } else {
+      for (const section of sections) {
+        const sectionTop = section.offsetTop;
+        if (scrollPosition >= sectionTop - 50 && scrollPosition < sectionTop + section.offsetHeight) {
+          activeSection = section;
         }
       }
-    } catch (error) {
-      console.warn('Scroll update error:', error);
+    }
+
+    if (activeSection) {
+      const sectionId = activeSection.getAttribute('id');
+      if (sectionId) {
+        const activeLink = document.querySelector(`.nav-link[href="#${CSS.escape(sectionId)}"]`);
+        if (activeLink) activeLink.classList.add('active');
+      }
     }
   };
 
   let ticking = false;
   const scrollHandler = () => {
     if (!ticking) {
-      window.requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
         updateActiveNavLink();
         ticking = false;
       });
       ticking = true;
     }
   };
-  const throttledScroll = window.PerformanceManager?.throttle(scrollHandler, 16) || scrollHandler;
-  
-  window.addEventListener('scroll', throttledScroll, { passive: true });
+
+  window.addEventListener('scroll',
+    window.PerformanceManager?.throttle(scrollHandler, 16) || scrollHandler,
+    { passive: true }
+  );
 });
