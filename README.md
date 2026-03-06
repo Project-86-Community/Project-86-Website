@@ -1,19 +1,16 @@
 # Project-86-Website
-Mobile version fixed now (finally) - still not dead yet VAIN
+Life update - still not dead yet VAIN
+:3
 
 # Changes
-- worked on hamburger menu
-- fixed some animations that where glitchy
-- fixed dowanload and play section (sky still didnt fixed luncher)
-- fixed button sizes to be same universal size
-- scaling fixed,
-- no more bot detection bug
-- no weird shading on mobile version
-- no more clicking on anything closes website (yes this happened)
-- added this point just to add it dont be mad if you really read it
-- wanted to add websites icon but it didnt work for some reason
-- was partying last weekend so didnt pushed update - woke up in really bad state
-- why are you still reading it?
+- i enjoyed my wait from updating but still fixed js...
+- i hate js yk, i donmt know a single person that may like javascript
+- its simply devils language
+- in mean time i enjoyed playing project wihngman inb mena time still im 10 h into the gamer and stuck at 6th mission i think?
+- lemme check steam [https://steamcommunity.com/id/NOTVAIN/]
+- never mind its 9,9 (as writing) ok no, im struck at 7th mission
+- damn i hate that sea ray guns mission, like last time i almost finished and one last fricking enemy was left and i crashed into water
+- i really have a skill issue
 
 # Website:
 [https://project-86-community.github.io/Project-86-Website/]
