@@ -4,8 +4,6 @@
 > Life update – still not dead yet.
 > VAIN :3
 
-## Installation
-
 ## Changes
 
 - I enjoyed taking a break from updating, but I still ended up fixing the JavaScript...
