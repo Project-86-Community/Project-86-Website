@@ -1,22 +1,7 @@
-# Project-86-Website
+# Project 86 Website
 
-> [Yummers]
-> Life update – still not dead yet.
-> VAIN :3
+The Project 86 game website. GitHub Pages serves the static files from the repository root.
 
-## Installation
+To work on the site locally, open `index.html` or run `python3 -m http.server 8000` in this directory and visit `http://localhost:8000`.
 
-## Changes
-
-- I enjoyed taking a break from updating, but I still ended up fixing the JavaScript...
-- I hate JS, you know. I don't know a single person who actually likes JavaScript.
-- It's simply the devil's language.
-- In the meantime, I've been enjoying Project Wingman. I'm about 10 hours into the game and I think I'm stuck on the 6th mission.
-- Let me check Steam
-- Never mind, it's actually 9.9 hours (as of writing).  I'm stuck on the 7th mission
-- I hate that Sea Ray guns mission. Last time I almost finished it, but there was one last enemy left and I crashed into the water.
-- I definitely have a skill issue. i should km
-
-## Website
-
-https://project-86-community.github.io/Project-86-Website/
+In-game imagery is bundled as WebP. `spearhead.webp`, `plains.webp`, `lineup.webp` and `combat.webp` are from the [Project 86 itch.io page](https://project-86.itch.io/project-86). `morpho.webp` is from the [anniversary release devlog](https://project-86.itch.io/project-86/devlog/1789119/v2xx-alpha-third-year-anniversary-release). `p86-logo.png` is the P-86 wordmark from the supplied game sign-in screenshot. The Barlow Condensed and DM Sans font licenses are in `assets/`.
